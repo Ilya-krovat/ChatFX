@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 public class Message implements Serializable {
     private String message = "";
-    private String messageType = "";
+    private MessageType messageType;
 
-    public Message(String messageType) {
+    public Message(MessageType messageType) {
         this.messageType = messageType;
     }
 
-    public Message(String messageType, String message) {
+    public Message(MessageType messageType, String message) {
         this.messageType = messageType;
         this.message = message;
     }
@@ -19,7 +19,7 @@ public class Message implements Serializable {
         return message;
     }
 
-    public String getMessageType() {
+    public MessageType getMessageType() {
         return messageType;
     }
 }

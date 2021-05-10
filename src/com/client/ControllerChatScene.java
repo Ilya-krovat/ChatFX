@@ -60,10 +60,10 @@ public class ControllerChatScene extends Client {
                         }
                         String message = receiveMessageFromServer();
                         chatHistory.add(0, message);
-                        if(chatHistory.size()>ChatOptions.MAX_SIZE_OF_CHAT_HISTORY)
+                        if (chatHistory.size() > ChatOptions.MAX_SIZE_OF_CHAT_HISTORY)
                             chatHistory = chatHistory.subList(0, ChatOptions.MAX_SIZE_OF_CHAT_HISTORY);
                         StringBuilder messages = new StringBuilder();
-                        for(String s:chatHistory) {
+                        for (String s : chatHistory) {
                             messages.append(s).append("\n");
                         }
                         text_area.setText(messages.toString());
@@ -71,9 +71,11 @@ public class ControllerChatScene extends Client {
                         break;
                 }
             } catch (IOException e) {
-                text_area.setText(CONNECTION_LOST + "\n" + text_area.getText().trim());
-                if (tryReconnectToChat())
-                    text_area.setText(CONNECTION_RETURNED + "\n" + text_area.getText().trim());
+                if (!isInterrupted) {
+                    text_area.setText(CONNECTION_LOST + "\n" + text_area.getText().trim());
+                    if (tryReconnectToChat())
+                        text_area.setText(CONNECTION_RETURNED + "\n" + text_area.getText().trim());
+                }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -83,6 +85,7 @@ public class ControllerChatScene extends Client {
         exit_button.setOnAction(event -> {
             disableClient();
             isInterrupted = true;
+            chat.interrupt();
             Stage stage = (Stage) exit_button.getScene().getWindow();
             stage.close();
         });

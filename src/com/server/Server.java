@@ -21,6 +21,9 @@ public class Server {
     private final String MESSAGES_CLASS_PATH = "messages.txt";
     private final String USERS_CLASS_PATH = "users.txt";
 
+    private final String USER_ADDED = "   подключился к чату";
+    private final String USER_LEFT = "   покинул чат";
+
     public void launch() {
         try {
             loadData();
@@ -75,7 +78,7 @@ public class Server {
                 Message registrationOrLogin = connection.read();
                 connection.send(new Message(MessageType.REQUEST_USER_NAME));
                 String userName = connection.read().getMessage();
-                connection.send(new Message(MessageType.PASSWORD));
+                connection.send(new Message(MessageType.REQUEST_USER_PASSWORD));
                 String password = connection.read().getMessage();
                 if (registrationOrLogin.getMessageType().equals(MessageType.REGISTRATION)) {
                     if (allUsers.containsKey(userName)) {
@@ -84,14 +87,14 @@ public class Server {
                     } else {
                         allUsers.put(userName, password);
                         users.put(userName, connection);
-                        sendMessageToAllUsers(new Message(MessageType.USER_ADDED, "\n" + userName + MessageType.USER_ENTER + "\n"));
-                        connection.send(new Message(MessageType.STATE_OF_LOGIN, MessageType.SUCCESSFULLY));
+                        sendMessageToAllUsers(new Message(MessageType.USER_ADDED, "\n" + userName + USER_ADDED + "\n"));
+                        connection.send(new Message(MessageType.STATE_OF_LOGIN));
                         return userName;
                     }
                 } else if (registrationOrLogin.getMessageType().equals(MessageType.LOGIN)) {
                     if (allUsers.containsKey(userName) && allUsers.get(userName).equals(password)) {
-                        connection.send(new Message(MessageType.STATE_OF_LOGIN, MessageType.SUCCESSFULLY));
-                        sendMessageToAllUsers(new Message(MessageType.USER_ADDED, "\n" + userName + MessageType.USER_ENTER + "\n"));
+                        connection.send(new Message(MessageType.STATE_OF_LOGIN));
+                        sendMessageToAllUsers(new Message(MessageType.USER_ADDED, "\n" + userName + USER_ADDED + "\n"));
                         users.put(userName, connection);
                         return userName;
                     } else
@@ -116,7 +119,7 @@ public class Server {
                 }
                 if (message.getMessageType().equals(MessageType.DISABLE_USER)) {
                     users.remove(userName);
-                    sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + MessageType.USER_LEAVE + "\n"));
+                    sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + USER_LEFT + "\n"));
                     connection.close();
                     break;
                 }
@@ -129,7 +132,7 @@ public class Server {
                 }
             } catch (Exception e) {
                 users.remove(userName);
-                sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + MessageType.USER_LEAVE + "\n"));
+                sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + USER_LEFT + "\n"));
                 try {
                     connection.close();
                 } catch (IOException ioException) {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="250.0" prefWidth="400.0" style="-fx-background-color: #FFDEAD;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.ControllerChangeServerScene">
+   <children>
+      <TextField fx:id="ip_field" layoutX="100.0" layoutY="50.0" prefHeight="30.0" prefWidth="200.0" promptText="IP Адресс" />
+      <TextField fx:id="port_field" layoutX="100.0" layoutY="100.0" prefHeight="30.0" prefWidth="200.0" promptText="Порт" />
+      <Button fx:id="ok_button" alignment="CENTER" layoutX="125.0" layoutY="165.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="150.0" text="ок">
+         <font>
+            <Font size="15.0" />
+         </font>
+      </Button>
+   </children>
+</AnchorPane>

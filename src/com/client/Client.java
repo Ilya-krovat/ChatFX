@@ -12,21 +12,28 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class Client {
+    String serverAddress = ChatOptions.IP_ADDRESS;
+    int serverPort = ChatOptions.PORT;
     protected static Connection connection;
+    protected static boolean isConnected = false;
     protected static String userName = "";
     protected static String passWord = "";
 
-    public void tryConnectToServer() throws IOException {
-        String addressServer = ChatOptions.IP_ADDRESS;
-        int port = ChatOptions.PORT;
-        Socket socket = new Socket(addressServer, port);
+    private void tryConnectToServer() throws IOException {
+        Socket socket = new Socket(serverAddress, serverPort);
         connection = new Connection(socket);
     }
 
-    public boolean tryReconnectToServer() {
+    public void changeServer(String address, int port) throws IOException {
+        serverAddress = address;
+        serverPort = port;
+        tryConnectToServer();
+    }
+
+    private boolean tryReconnectToServer() {
         for (int i = 0; i < 5; i++) {
             try {
-                Thread.sleep(1500);
+                Thread.sleep(500);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -37,6 +44,18 @@ public class Client {
             }
         }
         return false;
+    }
+
+    public void tryConnectAndReconnect() {
+        try {
+            tryConnectToServer();
+            isConnected = true;
+        } catch (IOException e) {
+            if (!tryReconnectToServer()) {
+                showErrorScene();
+                isConnected = false;
+            }
+        }
     }
 
     public boolean tryReconnectToChat() {
@@ -56,10 +75,10 @@ public class Client {
         return false;
     }
 
-    public String tryLoginToServer(String uName, String pWord) throws IOException, ClassNotFoundException {
+    public MessageType tryLoginToServer(String uName, String pWord) throws IOException, ClassNotFoundException {
         while (true) {
             Message message = connection.read();
-            if (message.getMessageType().equals(MessageType.REGISTRATION_OR_LOGIN))
+            if (message.getMessageType().equals(MessageType.DISABLE_USER))
                 connection.send(new Message(MessageType.LOGIN));
             if (message.getMessageType().equals(MessageType.REQUEST_USER_NAME)) {
                 userName = uName;
@@ -72,12 +91,12 @@ public class Client {
             if (message.getMessageType().equals(MessageType.INVALID_LOG_ERROR))
                 return message.getMessageType();
             if (message.getMessageType().equals(MessageType.STATE_OF_LOGIN)) {
-                return message.getMessage();
+                return MessageType.SUCCESSFULLY;
             }
         }
     }
 
-    public String tryRegisterToServer(String uName, String pWord) throws IOException, ClassNotFoundException {
+    public MessageType tryRegisterToServer(String uName, String pWord) throws IOException, ClassNotFoundException {
         while (true) {
             Message message = connection.read();
             if (message.getMessageType().equals(MessageType.REGISTRATION_OR_LOGIN))
@@ -91,7 +110,7 @@ public class Client {
                 connection.send(new Message(MessageType.PASSWORD, pWord));
             }
             if (message.getMessageType().equals(MessageType.STATE_OF_LOGIN))
-                return message.getMessage();
+                return MessageType.SUCCESSFULLY;
             if (message.getMessageType().equals(MessageType.USERNAME_USED))
                 return message.getMessageType();
         }

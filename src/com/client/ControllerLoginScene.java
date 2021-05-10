@@ -29,18 +29,17 @@ public class ControllerLoginScene extends Client {
     @FXML
     private TextField error_field;
 
+  //  @FXML
+  //  private Button change_server_button;
+
     @FXML
     void initialize() {
-        try {
-            tryConnectToServer();
-        } catch (IOException e) {
-            if (!tryReconnectToServer()) {
-                showErrorScene();
-            }
-        }
+        tryConnectAndReconnect();
         login_button.setOnAction(event -> {
             try {
-                String state = tryLoginToServer(login_field.getText().trim(), password_field.getText().trim());
+           //     if(!isConnected)
+           //         tryConnectAndReconnect();
+                MessageType state = tryLoginToServer(login_field.getText().trim(), password_field.getText().trim());
                 if (state.equals(MessageType.INVALID_LOG_ERROR)) {
                     error_field.setVisible(true);
                     return;
@@ -83,5 +82,25 @@ public class ControllerLoginScene extends Client {
             stage.setScene(new Scene(root1));
             stage.show();
         });
+
+/*
+        change_server_button.setOnAction(event -> {
+            FXMLLoader loader1 = new FXMLLoader();
+            loader1.setLocation(getClass().getResource("scenes/changeServerScene.fxml"));
+
+            Parent root1 = null;
+            try {
+                root1 = (Parent) loader1.load();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Stage stage1 = new Stage();
+            stage1.setScene(new Scene(root1));
+            stage1.setAlwaysOnTop(true);
+            stage1.show();
+
+        });
+
+ */
     }
 }
