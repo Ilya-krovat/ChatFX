@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Server {
     private ServerSocket serverSocket;
@@ -24,6 +27,21 @@ public class Server {
     private final String USER_ADDED = "   подключился к чату";
     private final String USER_LEFT = "   покинул чат";
 
+
+    static Logger LOGGER;
+    static {
+        try{
+            File file = new File("log.config");
+            if (!file.exists())
+                    file.createNewFile();
+            FileInputStream ins = new FileInputStream("log.config");
+            LogManager.getLogManager().readConfiguration(ins);
+            LOGGER = Logger.getLogger(Server.class.getName());
+        }catch (Exception ignore){
+            ignore.printStackTrace();
+        }
+    }
+
     public void launch() {
         try {
             loadData();
@@ -33,6 +51,7 @@ public class Server {
                 while (true) {
                     try {
                         Socket socket = serverSocket.accept();
+                        LOGGER.log(Level.INFO, "Найдено новое соединение");
                         new ServerThread(socket).start();
                     } catch (Exception e) {
                         break;
@@ -43,22 +62,24 @@ public class Server {
                 while (true) {
                     try {
                         Thread.sleep(60000);
+                        LOGGER.log(Level.INFO,"Сохранение данных в файл");
                         saveData();
                     } catch (InterruptedException | IOException e) {
-                        e.printStackTrace();
+                        LOGGER.log(Level.WARNING,"Ошибка при попытки сохранения данных " + e.getMessage());
                     }
                 }
             });
 
             mainThread.start();
             dataSave.start();
-            System.out.println("server started");
+            LOGGER.log(Level.INFO,"сервер запустился");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, e.getMessage());
         }
     }
 
     private void sendMessageToAllUsers(Message message) {
+        LOGGER.log(Level.INFO, "Отправка всем сообщения " + message.getMessage());
         chatHistory.add(0, message.getMessage());
         if(chatHistory.size()>ChatOptions.MAX_SIZE_OF_CHAT_HISTORY)
             chatHistory = chatHistory.subList(0, ChatOptions.MAX_SIZE_OF_CHAT_HISTORY);
@@ -66,12 +87,13 @@ public class Server {
             try {
                 user.getValue().send(message);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Ошибка при попытке отправить всем сообщение " + message.getMessage() + "\n" + e.getMessage());
             }
         }
     }
 
     private String registerAndAddingUser(Connection connection) {
+        LOGGER.log(Level.INFO, "Добавление нового пользователя");
         while (true) {
             try {
                 connection.send(new Message(MessageType.REGISTRATION_OR_LOGIN));
@@ -89,6 +111,7 @@ public class Server {
                         users.put(userName, connection);
                         sendMessageToAllUsers(new Message(MessageType.USER_ADDED, "\n" + userName + USER_ADDED + "\n"));
                         connection.send(new Message(MessageType.STATE_OF_LOGIN));
+                        LOGGER.log(Level.INFO,"Пользователь " + userName + " успешно добавлен");
                         return userName;
                     }
                 } else if (registrationOrLogin.getMessageType().equals(MessageType.LOGIN)) {
@@ -96,21 +119,28 @@ public class Server {
                         connection.send(new Message(MessageType.STATE_OF_LOGIN));
                         sendMessageToAllUsers(new Message(MessageType.USER_ADDED, "\n" + userName + USER_ADDED + "\n"));
                         users.put(userName, connection);
+                        LOGGER.log(Level.INFO,"Пользователь " + userName + " успешно добавлен");
                         return userName;
-                    } else
+                    } else {
                         connection.send(new Message(MessageType.INVALID_LOG_ERROR));
+                    }
                 }
             } catch (Exception e) {
                 try {
+                    LOGGER.log(Level.WARNING, "Ошибка при добавлении пользователя " + e.getMessage());
                     connection.send(new Message(MessageType.ENTER_ERROR));
+                    break;
                 } catch (Exception ex) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Критическая ошибка при добавлении пользователя (нет соединения) " + ex.getMessage());
+                    break;
                 }
             }
         }
+        return "";
     }
 
     private void messaging(Connection connection, String userName) {
+        LOGGER.log(Level.INFO, "Пользоваетль " + userName+ " добавлен в чат");
         while (true) {
             try {
                 Message message = connection.read();
@@ -118,12 +148,14 @@ public class Server {
                     sendMessageToAllUsers(new Message(MessageType.TEXT_MESSAGE, message.getMessage()));
                 }
                 if (message.getMessageType().equals(MessageType.DISABLE_USER)) {
+                    LOGGER.log(Level.INFO, "Пользователь " + userName + " отключается");
                     users.remove(userName);
                     sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + USER_LEFT + "\n"));
                     connection.close();
                     break;
                 }
                 if (message.getMessageType().equals(MessageType.REQUEST_CHAT_HISTORY)) {
+                    LOGGER.log(Level.INFO, "Пользователь " + userName + " запрашивает исотрию чата");
                     for(int i = chatHistory.size()-1 ; i>=0 ; i--)
                     {
                         connection.send(new Message(MessageType.TEXT_MESSAGE, chatHistory.get(i)));
@@ -131,12 +163,13 @@ public class Server {
 
                 }
             } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Потеря связи с пользователем " + userName+ "\n"+ e.getMessage());
                 users.remove(userName);
                 sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + USER_LEFT + "\n"));
                 try {
                     connection.close();
                 } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Ошибка при попытки закрытия соединения с пользователем " + userName+ "\n"+ e.getMessage());
                 }
                 break;
             }
@@ -159,7 +192,7 @@ public class Server {
                 messaging(connection, userName);
 
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Ошибка в потоке ServerThread" + e.getMessage());
             }
         }
     }
