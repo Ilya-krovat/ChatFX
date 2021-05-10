@@ -37,8 +37,13 @@ public class ControllerRegistrationScene extends Client {
     @FXML
     void initialize() {
         registration_button.setOnAction(event -> {
-            if(!isConnected)
-                tryConnectAndReconnect();
+            if(!isConnected){
+                try {
+                    tryConnectToServer();
+                } catch (IOException e) {
+                    showErrorScene();
+                }
+            }
             try {
                 MessageType state = tryRegisterToServer(login_field.getText().trim(), password_field.getText().trim());
                 if (state.equals(MessageType.USERNAME_USED)) {

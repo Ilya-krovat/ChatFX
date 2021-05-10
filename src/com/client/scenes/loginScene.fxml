@@ -30,6 +30,7 @@
                </font></Button>
             <TextField fx:id="error_field" alignment="TOP_CENTER" editable="false" layoutX="150.0" layoutY="166.0" prefHeight="30.0" prefWidth="300.0" style="-fx-background-color: #FFDEAD;" text="Неверное имя пользователя или пароль" visible="false" />
             <TextField fx:id="connection_error_text_area" alignment="CENTER" editable="false" layoutX="69.0" layoutY="33.0" prefHeight="25.0" prefWidth="462.0" style="-fx-background-color: #FFDEAD;" text="Ошибка при подключении к серверу, попытка повторного подключения" visible="false" />
+            <Button fx:id="change_server_button" alignment="CENTER" layoutX="14.0" layoutY="33.0" mnemonicParsing="false" text="изменить сервер" textAlignment="CENTER" />
          </children>
       </AnchorPane>
    </children>

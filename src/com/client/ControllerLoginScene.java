@@ -1,5 +1,6 @@
 package com.client;
 
+import com.server.ChatOptions;
 import com.server.message.MessageType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -29,16 +30,20 @@ public class ControllerLoginScene extends Client {
     @FXML
     private TextField error_field;
 
-  //  @FXML
-  //  private Button change_server_button;
+    @FXML
+    private Button change_server_button;
 
     @FXML
     void initialize() {
-        tryConnectAndReconnect();
+        serverAddress = ChatOptions.IP_ADDRESS;
+        serverPort = ChatOptions.PORT;
+        try {
+            tryConnectToServer();
+        }catch (IOException e){
+            showErrorScene();
+        }
         login_button.setOnAction(event -> {
             try {
-           //     if(!isConnected)
-           //         tryConnectAndReconnect();
                 MessageType state = tryLoginToServer(login_field.getText().trim(), password_field.getText().trim());
                 if (state.equals(MessageType.INVALID_LOG_ERROR)) {
                     error_field.setVisible(true);
@@ -83,7 +88,6 @@ public class ControllerLoginScene extends Client {
             stage.show();
         });
 
-/*
         change_server_button.setOnAction(event -> {
             FXMLLoader loader1 = new FXMLLoader();
             loader1.setLocation(getClass().getResource("scenes/changeServerScene.fxml"));
@@ -98,9 +102,6 @@ public class ControllerLoginScene extends Client {
             stage1.setScene(new Scene(root1));
             stage1.setAlwaysOnTop(true);
             stage1.show();
-
         });
-
- */
     }
 }

@@ -1,6 +1,5 @@
 package com.client;
 
-import com.server.ChatOptions;
 import com.server.message.*;
 import com.server.Connection;
 import javafx.fxml.FXMLLoader;
@@ -12,22 +11,16 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class Client {
-    String serverAddress = ChatOptions.IP_ADDRESS;
-    int serverPort = ChatOptions.PORT;
+    protected static String serverAddress;
+    protected static int serverPort;
     protected static Connection connection;
     protected static boolean isConnected = false;
     protected static String userName = "";
     protected static String passWord = "";
 
-    private void tryConnectToServer() throws IOException {
+    public void tryConnectToServer() throws IOException {
         Socket socket = new Socket(serverAddress, serverPort);
         connection = new Connection(socket);
-    }
-
-    public void changeServer(String address, int port) throws IOException {
-        serverAddress = address;
-        serverPort = port;
-        tryConnectToServer();
     }
 
     private boolean tryReconnectToServer() {
@@ -50,7 +43,7 @@ public class Client {
         try {
             tryConnectToServer();
             isConnected = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (!tryReconnectToServer()) {
                 showErrorScene();
                 isConnected = false;
