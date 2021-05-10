@@ -56,7 +56,9 @@ public class Server {
     }
 
     private void sendMessageToAllUsers(Message message) {
-        chatHistory.add(message.getMessage());
+        chatHistory.add(0, message.getMessage());
+        if(chatHistory.size()>ChatOptions.MAX_SIZE_OF_CHAT_HISTORY)
+            chatHistory = chatHistory.subList(0, ChatOptions.MAX_SIZE_OF_CHAT_HISTORY);
         for (Map.Entry<String, Connection> user : users.entrySet()) {
             try {
                 user.getValue().send(message);
@@ -114,20 +116,20 @@ public class Server {
                 }
                 if (message.getMessageType().equals(MessageType.DISABLE_USER)) {
                     users.remove(userName);
-                    sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + MessageType.USER_LEAVE + userName + "\n"));
+                    sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + MessageType.USER_LEAVE + "\n"));
                     connection.close();
                     break;
                 }
                 if (message.getMessageType().equals(MessageType.REQUEST_CHAT_HISTORY)) {
-                    StringBuilder chatHist = new StringBuilder();
-                    for (String s : chatHistory) {
-                        chatHist.append(s).append("\n");
+                    for(int i = chatHistory.size()-1 ; i>=0 ; i--)
+                    {
+                        connection.send(new Message(MessageType.TEXT_MESSAGE, chatHistory.get(i)));
                     }
-                    connection.send(new Message(MessageType.TEXT_MESSAGE, chatHist.toString()));
+
                 }
             } catch (Exception e) {
                 users.remove(userName);
-                sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + MessageType.USER_LEAVE + userName + "\n"));
+                sendMessageToAllUsers(new Message(MessageType.DISABLE_USER, "\n" + userName + MessageType.USER_LEAVE + "\n"));
                 try {
                     connection.close();
                 } catch (IOException ioException) {

@@ -2,8 +2,11 @@ package com.client;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import com.server.ChatOptions;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -48,6 +51,7 @@ public class ControllerChatScene extends Client {
         Thread chat = new Thread(() -> {
             boolean isChatHistoryLoaded = false;
             try {
+                List<String> chatHistory = new ArrayList<>();
                 while (true) {
                     if (!isInterrupted) {
                         if (!isChatHistoryLoaded) {
@@ -55,7 +59,14 @@ public class ControllerChatScene extends Client {
                             isChatHistoryLoaded = true;
                         }
                         String message = receiveMessageFromServer();
-                        text_area.setText(message + "\n" + text_area.getText().trim());
+                        chatHistory.add(0, message);
+                        if(chatHistory.size()>ChatOptions.MAX_SIZE_OF_CHAT_HISTORY)
+                            chatHistory = chatHistory.subList(0, ChatOptions.MAX_SIZE_OF_CHAT_HISTORY);
+                        StringBuilder messages = new StringBuilder();
+                        for(String s:chatHistory) {
+                            messages.append(s).append("\n");
+                        }
+                        text_area.setText(messages.toString());
                     } else
                         break;
                 }

@@ -112,7 +112,6 @@ public class Client {
 
     public void disableClient() {
         try {
-            connection.send(new Message(MessageType.DISABLE_USER, userName));
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
