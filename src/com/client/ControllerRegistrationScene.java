@@ -37,6 +37,8 @@ public class ControllerRegistrationScene extends Client {
     @FXML
     void initialize() {
         registration_button.setOnAction(event -> {
+            String login = login_field.getText().trim();
+            String password = password_field.getText().trim();
             if(!isConnected){
                 try {
                     tryConnectToServer();
@@ -45,7 +47,9 @@ public class ControllerRegistrationScene extends Client {
                 }
             }
             try {
-                MessageType state = tryRegisterToServer(login_field.getText().trim(), password_field.getText().trim());
+                if(!checkPassword(password))
+                    return;
+                MessageType state = tryRegisterToServer(login,password);
                 if (state.equals(MessageType.USERNAME_USED)) {
                     error_text_field.setVisible(true);
                     return;
@@ -73,5 +77,17 @@ public class ControllerRegistrationScene extends Client {
             stage.setScene(new Scene(root1));
             stage.show();
         });
+    }
+
+    private boolean checkPassword(String password){
+        if(password.length()<=4) {
+            //show "password is too short"
+            return false;
+        }
+        if(password.length()>10) {
+            //show "password is too long"
+            return false;
+        }
+        return true;
     }
 }
