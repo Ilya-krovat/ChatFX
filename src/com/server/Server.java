@@ -127,11 +127,11 @@ public class Server {
                 }
             } catch (Exception e) {
                 try {
-                    LOGGER.log(Level.WARNING, "Ошибка при добавлении пользователя " + e.getMessage());
                     connection.send(new Message(MessageType.ENTER_ERROR));
+                    LOGGER.log(Level.WARNING, "Ошибка при добавлении пользователя " + e.getMessage());
                     break;
                 } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, "Критическая ошибка при добавлении пользователя (нет соединения) " + ex.getMessage());
+                    LOGGER.log(Level.INFO, "Отсутствует соединение с пользователем " + ex.getMessage());
                     break;
                 }
             }
@@ -189,8 +189,8 @@ public class Server {
             try {
                 Connection connection = new Connection(socket);
                 String userName = registerAndAddingUser(connection);
-                messaging(connection, userName);
-
+                if(!userName.equals(""))
+                    messaging(connection, userName);
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, "Ошибка в потоке ServerThread" + e.getMessage());
             }
